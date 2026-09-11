@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p3004 --turbopack",
-    "build": "next build -p 3004",
+    "build": "next build -p3004",
     "start": "next start",
     "lint": "bunx tsc --noEmit && next lint",
     "format": "bunx biome format --write"
