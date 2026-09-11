@@ -24,8 +24,6 @@ export function Footer() {
             <div className="mt-8 flex items-center gap-3">
               <PaymentMark label="Visa" />
               <PaymentMark label="Mastercard" />
-              <PaymentMark label="AMEX" />
-              <PaymentMark label="SPEI" />
             </div>
           </div>
 

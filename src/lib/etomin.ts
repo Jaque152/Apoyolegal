@@ -130,12 +130,12 @@ export async function processEtominPayment(payment: PaymentData) {
             data: data,
         };
 
-    } catch (error: any) {
-        console.error("Etomin Payment Error:", error.response?.data || error.message);
+    } catch (error: unknown) {
+        console.error("Etomin Payment Error:", error instanceof Error ? error.message : "Unknown error");
         return {
             success: false,
             status: "error",
-            error: error.response?.data?.message || "Error procesando el pago con Etomin",
+            error: error instanceof Error ? error.message : "Error procesando el pago con Etomin",
         };
     }
 }
