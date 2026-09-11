@@ -8,7 +8,7 @@ const ADMIN_EMAIL = 'info@apoyolegalmx.com';
 export async function sendContactEmail(data: { nombre: string; email: string; telefono: string; asunto: string; mensaje: string }) {
   try {
     await resend.emails.send({
-      from: 'Apoyo Legal MX <notificaciones@apoyolegalmx.com>',
+      from: 'Apoyo Legal MX <info@apoyolegalmx.com>',
       to: [ADMIN_EMAIL, data.email],
       subject: `Nuevo mensaje de contacto: ${data.asunto}`,
       html: `
@@ -33,7 +33,7 @@ export async function sendContactEmail(data: { nombre: string; email: string; te
 export async function sendOrderConfirmationEmail(data: { nombre: string; email: string; orderId: string; total: number; method: string }) {
   try {
     await resend.emails.send({
-      from: 'Apoyo Legal MX <pagos@apoyolegalmx.com>',
+      from: 'Apoyo Legal MX <info@apoyolegalmx.com>',
       to: [ADMIN_EMAIL, data.email],
       subject: `Confirmación de pedido ${data.orderId}`,
       html: `
