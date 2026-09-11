@@ -1,0 +1,273 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ---- Brand palette: parchment / forest ink / brass ---- */
+    --cream: 42 40% 94%;
+    --cream-deep: 40 30% 89%;
+    --sand: 38 30% 82%;
+    --ink: 158 40% 9%;
+    --forest: 160 37% 17%;
+    --forest-soft: 158 20% 32%;
+    --brass: 37 49% 46%;
+    --brass-light: 38 58% 62%;
+    --clay: 14 54% 40%;
+
+    --background: var(--cream);
+    --foreground: var(--ink);
+
+    --card: 40 44% 97%;
+    --card-foreground: var(--ink);
+
+    --popover: 40 44% 97%;
+    --popover-foreground: var(--ink);
+
+    --primary: var(--forest);
+    --primary-foreground: 42 40% 96%;
+
+    --secondary: var(--sand);
+    --secondary-foreground: var(--ink);
+
+    --muted: 40 24% 88%;
+    --muted-foreground: 158 12% 36%;
+
+    --accent: var(--brass);
+    --accent-foreground: 42 40% 97%;
+
+    --destructive: 8 62% 42%;
+    --destructive-foreground: 42 40% 97%;
+
+    --border: 40 18% 78%;
+    --input: 40 18% 72%;
+    --ring: var(--brass);
+
+    --radius: 0.125rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "kern" 1, "liga" 1, "cv05" 1;
+    letter-spacing: -0.005em;
+  }
+
+  ::selection {
+    background: hsl(var(--forest));
+    color: hsl(var(--cream));
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    font-family: var(--font-display), Georgia, serif;
+    font-weight: 400;
+    letter-spacing: -0.022em;
+    text-wrap: balance;
+  }
+
+  /* Thin scrollbar tuned to palette */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--cream-deep));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--forest) / 0.35);
+    border: 3px solid hsl(var(--cream-deep));
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--forest) / 0.6);
+  }
+}
+
+@layer components {
+  /* ---------- Texture ---------- */
+  .grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.42;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.32'/%3E%3C/svg%3E");
+  }
+
+  .grain-fixed::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0.28;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.3'/%3E%3C/svg%3E");
+  }
+
+  /* Duotone photo treatment: forest ink + parchment */
+  .duotone {
+    filter: grayscale(1) contrast(1.08) brightness(1.02);
+  }
+  .duotone-wrap {
+    position: relative;
+    isolation: isolate;
+    background: hsl(var(--forest));
+  }
+  .duotone-wrap::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      145deg,
+      hsl(var(--forest) / 0.72),
+      hsl(var(--ink) / 0.45) 45%,
+      hsl(var(--brass) / 0.3)
+    );
+    mix-blend-mode: color;
+    pointer-events: none;
+  }
+  .duotone-wrap::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: linear-gradient(
+      to top,
+      hsl(var(--ink) / 0.5),
+      transparent 55%
+    );
+    pointer-events: none;
+  }
+
+  /* ---------- Type helpers ---------- */
+  .eyebrow {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 0.6875rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .num {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  .rule {
+    border-top: 1px solid hsl(var(--forest) / 0.16);
+  }
+
+  .display-xl {
+    font-size: clamp(2.9rem, 8.2vw, 7.5rem);
+    line-height: 0.9;
+  }
+
+  /* ---------- Link underline sweep ---------- */
+  .link-sweep {
+    position: relative;
+    display: inline-block;
+  }
+  .link-sweep::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    height: 1px;
+    width: 100%;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .link-sweep:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+
+  /* ---------- Reveal animations ---------- */
+  .reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    animation: reveal-up 0.95s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .reveal-mask {
+    display: block;
+    overflow: hidden;
+  }
+  .reveal-mask > span {
+    display: block;
+    transform: translateY(105%);
+    animation: mask-up 1.05s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .in-view .io {
+    opacity: 1;
+    transform: none;
+  }
+  .io {
+    opacity: 0;
+    transform: translateY(22px);
+    transition:
+      opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+@keyframes reveal-up {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes mask-up {
+  to {
+    transform: none;
+  }
+}
+
+@keyframes ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.ticker-track {
+  display: flex;
+  width: max-content;
+  animation: ticker 34s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-mask > span,
+  .io {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .ticker-track {
+    animation: none;
+  }
+}
