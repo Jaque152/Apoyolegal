@@ -16,14 +16,13 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Comprobamos si la URL ya tiene el idioma (ej. /es/contacto)
+  // Comprobamos si la URL ya tiene el idioma 
   const pathnameHasLocale = locales.some(
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
   );
 
   if (pathnameHasLocale) return NextResponse.next();
   
-  // Tomamos el dominio original enviado por Nginx
   const host =
     request.headers.get("x-forwarded-host") ||
     request.headers.get("host");

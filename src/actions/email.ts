@@ -80,10 +80,16 @@ export async function sendContactEmail(data: { nombre: string; email: string; te
   }
 }
 
-// ⚠️ ACTUALIZADO: Recibe el arreglo de items comprados
 export async function sendOrderConfirmationEmail(data: { 
   nombre: string; 
-  email: string; 
+  email: string;
+  telefono: string;
+  empresa?: string;
+  rfc?: string;
+  direccion: string;
+  ciudad: string;
+  cp: string;
+  notas?: string;
   orderId: string; 
   total: number; 
   method: string; 
@@ -93,21 +99,34 @@ export async function sendOrderConfirmationEmail(data: {
   try {
     const isEn = data.lang === "en";
 
+    // Textos base
     const subject = isEn ? `Order confirmation ${data.orderId}` : `Confirmación de pedido ${data.orderId}`;
     const title = isEn ? "Your order is confirmed" : "Tu pedido está confirmado";
     const greeting = isEn 
-      ? `<p>Thank you for your payment, <strong>${data.nombre}</strong>. Your transaction was processed successfully and operations will begin the same business day.</p>`
-      : `<p>Gracias por tu pago, <strong>${data.nombre}</strong>. Tu transacción ha sido procesada con éxito y la gestión iniciará el mismo día hábil.</p>`;
+      ? `<p>Thank you for your payment, <strong>${data.nombre.split(" ")[0]}</strong>. Your transaction was processed successfully and operations will begin the same business day.</p>`
+      : `<p>Gracias por tu pago, <strong>${data.nombre.split(" ")[0]}</strong>. Tu transacción ha sido procesada con éxito y la gestión iniciará el mismo día hábil.</p>`;
+    
+    // Resumen de pago
     const ref = isEn ? "Reference" : "Referencia";
     const totalLabel = isEn ? "Total paid" : "Total pagado";
     const method = isEn ? "Method" : "Método";
+    const itemsTitle = isEn ? "Purchased services:" : "Servicios contratados:";
+    
+    // Detalles del cliente
+    const detailsTitle = isEn ? "Billing & Contact Details" : "Datos de contacto y facturación";
+    const lName = isEn ? "Name" : "Nombre";
+    const lEmail = isEn ? "Email" : "Correo";
+    const lPhone = isEn ? "Phone" : "Teléfono";
+    const lCompany = isEn ? "Company" : "Empresa";
+    const lRFC = isEn ? "Tax ID (RFC)" : "RFC";
+    const lAddress = isEn ? "Address" : "Dirección";
+    const lNotes = isEn ? "Notes" : "Notas";
+
     const nextStepsTitle = isEn ? "Next steps" : "Siguientes pasos";
     const nextStepsDesc = isEn 
       ? "We will contact you shortly with the exact list of requirements to start your process."
       : "Te contactaremos en breve con la lista exacta de requisitos para iniciar tu trámite.";
-    const itemsTitle = isEn ? "Purchased services:" : "Servicios contratados:";
 
-    // Generamos la tabla de productos
     const itemsHtml = `
       <h3 style="color: ${colors.forest}; font-size: 16px; margin-top: 25px;">${itemsTitle}</h3>
       <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 25px; border-collapse: collapse;">
@@ -123,6 +142,19 @@ export async function sendOrderConfirmationEmail(data: {
       </table>
     `;
 
+    const customerDetailsHtml = `
+      <h3 style="color: ${colors.forest}; font-size: 16px; margin-top: 25px;">${detailsTitle}</h3>
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 25px; border-collapse: collapse; font-size: 14px; color: ${colors.ink};">
+        <tr><td style="padding: 6px 0;"><strong>${lName}:</strong> ${data.nombre}</td></tr>
+        <tr><td style="padding: 6px 0;"><strong>${lEmail}:</strong> ${data.email}</td></tr>
+        <tr><td style="padding: 6px 0;"><strong>${lPhone}:</strong> ${data.telefono}</td></tr>
+        ${data.empresa ? `<tr><td style="padding: 6px 0;"><strong>${lCompany}:</strong>${data.empresa}</td></tr>` : ''}
+        ${data.rfc ? `<tr><td style="padding: 6px 0;"><strong>${lRFC}:</strong>${data.rfc}</td></tr>` : ''}
+        <tr><td style="padding: 6px 0;"><strong>${lAddress}:</strong> ${data.direccion}, ${data.ciudad}, C.P. ${data.cp}</td></tr>
+        ${data.notas ? `<tr><td style="padding: 6px 0;"><strong>${lNotes}:</strong>${data.notas}</td></tr>` : ''}
+      </table>
+    `;
+
     const content = `
       ${greeting}
       ${itemsHtml}
@@ -131,6 +163,7 @@ export async function sendOrderConfirmationEmail(data: {
         <p style="margin: 0 0 8px 0;"><strong>${totalLabel}:</strong> $${data.total.toFixed(2)} MXN</p>
         <p style="margin: 0;"><strong>${method}:</strong> ${data.method}</p>
       </div>
+      ${customerDetailsHtml}
       <h3 style="color: ${colors.forest}; font-size: 16px;">${nextStepsTitle}</h3>
       <p style="line-height: 1.5;">${nextStepsDesc}</p>
     `;

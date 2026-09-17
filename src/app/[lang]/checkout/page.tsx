@@ -105,6 +105,7 @@ export default function CheckoutPage(props: { params: Promise<{ lang: string }> 
 
     const [mes, anio] = form.expira.split("/");
     
+    // Añadimos extraData como cuarto parámetro para mandarlo al correo
     const paymentResult = await processCheckoutAction({
       amount: total,
       orderId: ref,
@@ -127,7 +128,11 @@ export default function CheckoutPage(props: { params: Promise<{ lang: string }> 
         cp: form.cp,
         empresa: form.empresa,
       },
-    }, lines, lang); // <-- Se envían los items (lines) del carrito y el idioma
+    }, lines, lang, { 
+      fullName: form.nombre, 
+      rfc: form.rfc, 
+      notas: form.notas 
+    });
 
     if (!paymentResult.success) {
       setStatus("idle");
