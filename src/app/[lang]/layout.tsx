@@ -8,6 +8,7 @@ import { CartDrawer } from "@/components/cart/cart-drawer";
 import { Header } from "@/components/site/header";
 import { Footer } from "@/components/site/footer";
 import { Toaster } from "@/components/ui/sonner";
+import { getDictionary, type Locale } from "@/lib/dictionaries";
 
 const display = Fraunces({
   variable: "--font-display",
@@ -55,14 +56,21 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
+  params,
 }: Readonly<{
   children: React.ReactNode;
+  params: Promise<{ lang: string }>;
 }>) {
+  // Resolvemos los parámetros asíncronos de Next.js 15
+  const resolvedParams = await params;
+  const lang = resolvedParams.lang as Locale;
+  const dict = getDictionary(lang);
+
   return (
     <html
-      lang="es-MX"
+      lang={lang}
       className={`${display.variable} ${body.variable} ${mono.variable}`}
     >
       <head>
@@ -78,9 +86,10 @@ export default function RootLayout({
       <body suppressHydrationWarning className="grain-fixed antialiased">
         <ClientBody>
           <CartProvider>
-            <Header />
+            {/* Se inyectan el idioma y el diccionario al Header */}
+            <Header lang={lang} dict={dict} />
             <main>{children}</main>
-            <Footer />
+            <Footer lang={lang} dict={dict} />
             <CartDrawer />
             <Toaster
               position="bottom-right"

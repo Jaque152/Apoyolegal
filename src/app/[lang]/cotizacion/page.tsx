@@ -1,17 +1,25 @@
 "use client";
 
+import { use, useMemo, useState } from "react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { Check, Loader2, Lock } from "lucide-react";
+import { Loader2, ShoppingBag } from "lucide-react";
+import { toast } from "sonner";
+import { useCart } from "@/components/cart/cart-context";
 import { PageHeader } from "@/components/site/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { IVA_RATE, formatMXN } from "@/lib/catalog";
+import { IVA_RATE, formatMXN, type Service } from "@/lib/catalog";
 import { cn } from "@/lib/utils";
-import { sendContactEmail } from "@/actions/email"; 
+import { getDictionary, type Locale } from "@/lib/dictionaries";
 
-export default function CotizacionPage() {
+export default function CotizacionPage(props: { params: Promise<{ lang: string }> }) {
+  const params = use(props.params);
+  const lang = params.lang as Locale;
+  const dict = getDictionary(lang);
+
+  const { add, openCart } = useCart();
+
   const [form, setForm] = useState({
     referencia: "",
     email: "",
@@ -20,7 +28,7 @@ export default function CotizacionPage() {
     concepto: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [status, setStatus] = useState<"idle" | "loading" | "done">("idle");
+  const [status, setStatus] = useState<"idle" | "loading">("idle");
 
   const amount = useMemo(() => {
     const parsed = Number(form.monto.replace(/[^0-9.]/g, ""));
@@ -43,12 +51,12 @@ export default function CotizacionPage() {
   function validate() {
     const e: Record<string, string> = {};
     if (form.referencia.trim().length < 4)
-      e.referencia = "Escribe el folio que aparece en tu propuesta";
+      e.referencia = dict.quotePage.errors.ref;
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.email))
-      e.email = "Correo electrónico no válido";
+      e.email = dict.quotePage.errors.email;
     if (form.telefono.replace(/\D/g, "").length < 10)
-      e.telefono = "Incluye 10 dígitos";
-    if (amount < 100) e.monto = "El monto mínimo es de $100.00 MXN";
+      e.telefono = dict.quotePage.errors.phone;
+    if (amount < 100) e.monto = dict.quotePage.errors.amount;
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -58,84 +66,52 @@ export default function CotizacionPage() {
     if (!validate()) return;
     setStatus("loading");
     
-    // Adaptación usando el Server Action para notificar la intención
-    const result = await sendContactEmail({
-      nombre: "Cliente Referencia: " + form.referencia,
-      email: form.email,
-      telefono: form.telefono,
-      asunto: `Pago registrado para cotización ${form.referencia}`,
-      mensaje: `Monto total: $${total} \nConcepto: ${form.concepto || "N/A"}`
-    });
-    
-    if (result.success) {
-      setStatus("done");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } else {
-      setStatus("idle");
-      alert("Hubo un error al registrar el pago. Intenta de nuevo.");
-    }
-  }
+    // Simulamos un micro-procesamiento visual
+    await new Promise((r) => setTimeout(r, 600));
 
-  if (status === "done") {
-    return (
-      <>
-        <PageHeader
-          eyebrow="Pago registrado"
-          title="Listo, recibimos tu pago"
-          crumbs={[
-            { href: "/", label: "Inicio" },
-            { href: "/cotizacion", label: "Cotización" },
-          ]}
-        />
-        <section className="mx-auto max-w-3xl px-5 py-16 md:py-24">
-          <div className="border border-forest/15 bg-card p-8 shadow-[10px_10px_0_0_hsl(var(--forest)/0.1)] md:p-12">
-            <span className="flex h-14 w-14 items-center justify-center border border-brass text-brass">
-              <Check className="h-6 w-6" strokeWidth={1.5} />
-            </span>
-            <h2 className="mt-8 text-[clamp(1.7rem,3vw,2.4rem)] leading-tight text-ink">
-              Pago aplicado a la cotización {form.referencia.toUpperCase()}
-            </h2>
-            <p className="mt-5 text-[1rem] leading-relaxed text-forest-soft">
-              Enviamos el comprobante a{" "}
-              <span className="text-ink">{form.email}</span>. Tu abogado
-              asignado te contactará hoy mismo para arrancar la gestión.
-            </p>
-            <dl className="mt-9 flex flex-wrap gap-x-12 gap-y-5">
-              <div>
-                <dt className="text-[0.66rem] uppercase tracking-[0.12em] text-forest/50">
-                  Monto pagado
-                </dt>
-                <dd className="num mt-1 text-[1.4rem] text-ink">
-                  {formatMXN(total)}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[0.66rem] uppercase tracking-[0.12em] text-forest/50">
-                  Incluye IVA
-                </dt>
-                <dd className="num mt-1 text-[1.4rem] text-ink">
-                  {formatMXN(iva)}
-                </dd>
-              </div>
-            </dl>
-            <Button asChild className="mt-10">
-              <Link href="/">Volver al inicio</Link>
-            </Button>
-          </div>
-        </section>
-      </>
-    );
+    // Forjamos la cotización como un objeto "Service" para que el carrito lo acepte nativamente
+    const quoteService: Service = {
+      slug: `cotizacion-${form.referencia.toLowerCase()}`,
+      name: `Cotización ${form.referencia.toUpperCase()}`,
+      price: amount,
+      category: "cumplimiento", // Categoría base genérica requerida por el tipo
+      summary: form.concepto || dict.quotePage.title,
+      detail: `Email asociado: ${form.email} | Teléfono: ${form.telefono}`,
+      deliverables: [],
+      turnaround: "Inmediato",
+      unit: "cotización"
+    };
+    
+    // Lo agregamos al carrito (Contexto global)
+    add(quoteService, 1);
+    
+    setStatus("idle");
+    
+    // Limpiamos el formulario para permitir agregar más cotizaciones si se desea
+    setForm({
+      referencia: "",
+      email: "",
+      telefono: "",
+      monto: "",
+      concepto: "",
+    });
+
+    // Mostramos la notificación y abrimos el Drawer
+    toast(dict.cart.item_added_title, {
+      description: quoteService.name,
+    });
+    openCart();
   }
 
   return (
     <>
       <PageHeader
-        eyebrow="A la medida"
-        title="Pagar una cotización"
-        lead="Si nuestro equipo ya te envió una propuesta con folio, liquídala aquí. El monto se toma directamente de tu documento; nosotros calculamos el IVA."
+        eyebrow={dict.quotePage.eyebrow}
+        title={dict.quotePage.title}
+        lead={dict.quotePage.lead}
         crumbs={[
-          { href: "/", label: "Inicio" },
-          { href: "/cotizacion", label: "Cotización" },
+          { href: `/${lang}`, label: dict.common.home },
+          { href: `/${lang}/cotizacion`, label: dict.nav.quote },
         ]}
       />
 
@@ -145,16 +121,16 @@ export default function CotizacionPage() {
             <div className="grid gap-x-8 gap-y-7 sm:grid-cols-2">
               <QField
                 id="referencia"
-                label="Folio de la cotización"
+                label={dict.quotePage.ref_label}
                 value={form.referencia}
                 onChange={(v) => set("referencia", v.toUpperCase())}
                 error={errors.referencia}
-                placeholder="ALM-2026-014"
-                className="num"
+                placeholder={dict.quotePage.ref_placeholder}
+                className="num font-bold"
               />
               <QField
                 id="email"
-                label="Correo electrónico"
+                label={dict.quotePage.email_label}
                 type="email"
                 value={form.email}
                 onChange={(v) => set("email", v)}
@@ -162,7 +138,7 @@ export default function CotizacionPage() {
               />
               <QField
                 id="telefono"
-                label="Teléfono"
+                label={dict.quotePage.phone_label}
                 type="tel"
                 value={form.telefono}
                 onChange={(v) => set("telefono", v)}
@@ -171,7 +147,7 @@ export default function CotizacionPage() {
               />
               <QField
                 id="monto"
-                label="Monto a pagar (sin IVA)"
+                label={dict.quotePage.amount_label}
                 value={form.monto}
                 onChange={(v) => set("monto", v.replace(/[^0-9.]/g, ""))}
                 error={errors.monto}
@@ -182,10 +158,10 @@ export default function CotizacionPage() {
               <div className="sm:col-span-2">
                 <QField
                   id="concepto"
-                  label="Concepto (opcional)"
+                  label={dict.quotePage.concept_label}
                   value={form.concepto}
                   onChange={(v) => set("concepto", v)}
-                  placeholder="Ej. Apostilla y traducción de poder notarial"
+                  placeholder={dict.quotePage.concept_placeholder}
                 />
               </div>
             </div>
@@ -197,12 +173,12 @@ export default function CotizacionPage() {
             >
               {status === "loading" ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" /> Procesando
+                  <Loader2 className="h-4 w-4 animate-spin" /> {dict.quotePage.processing}
                 </>
               ) : (
                 <>
-                  <Lock className="h-3.5 w-3.5" strokeWidth={1.6} />
-                  Pagar {total > 0 ? formatMXN(total) : "cotización"}
+                  <ShoppingBag className="h-3.5 w-3.5" strokeWidth={1.6} />
+                  {dict.cart.add_to_cart} • {total > 0 ? formatMXN(total) : dict.quotePage.pay_quote}
                 </>
               )}
             </Button>
@@ -210,25 +186,25 @@ export default function CotizacionPage() {
 
           <aside className="lg:col-span-5">
             <div className="sticky top-28 border border-forest/15 bg-card p-7 shadow-[8px_8px_0_0_hsl(var(--forest)/0.08)]">
-              <p className="eyebrow text-brass">Desglose</p>
+              <p className="eyebrow text-brass">{dict.quotePage.summary_title}</p>
               <dl className="mt-6 space-y-3 text-[0.92rem]">
                 <div className="flex justify-between text-forest-soft">
-                  <dt>Monto de la propuesta</dt>
+                  <dt>{dict.quotePage.proposal_amount}</dt>
                   <dd className="num">{formatMXN(amount)}</dd>
                 </div>
                 <div className="flex justify-between text-forest-soft">
-                  <dt>IVA (16%)</dt>
+                  <dt>{dict.cart.iva}</dt>
                   <dd className="num">{formatMXN(iva)}</dd>
                 </div>
                 <div className="flex justify-between border-t border-forest/15 pt-3 text-ink">
-                  <dt className="font-display text-[1.2rem]">Total</dt>
+                  <dt className="font-display text-[1.2rem]">{dict.cart.total}</dt>
                   <dd className="num text-[1.2rem]">{formatMXN(total)}</dd>
                 </div>
               </dl>
               <ul className="mt-7 space-y-2 border-t border-forest/12 pt-5 text-[0.78rem] text-forest/60">
-                <li>Tarjeta de crédito, débito o SPEI</li>
-                <li>Factura CFDI 4.0 en 24 horas</li>
-                <li>Comprobante inmediato por correo</li>
+                {dict.quotePage.bullets.map((bullet, index) => (
+                  <li key={index}>{bullet}</li>
+                ))}
               </ul>
             </div>
           </aside>
@@ -260,7 +236,7 @@ function QField({
   className?: string;
 }) {
   return (
-    <div>
+    <div data-error={error ? "true" : "false"}>
       <Label
         htmlFor={id}
         className="text-[0.7rem] uppercase tracking-[0.12em] text-forest/55"

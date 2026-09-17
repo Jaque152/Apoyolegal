@@ -5,36 +5,54 @@ import { ArrowUpRight } from "lucide-react";
 import { PageHeader } from "@/components/site/page-header";
 import { Reveal } from "@/components/site/reveal";
 import { Button } from "@/components/ui/button";
-import { categories, servicesByCategory, formatMXN } from "@/lib/catalog";
+import { categories, servicesByCategory, formatMXN, catalogs } from "@/lib/catalog";
+import { getDictionary, type Locale } from "@/lib/dictionaries";
 
-export const metadata: Metadata = {
-  title: "Servicios",
-  description:
-    "Catálogo de servicios de cumplimiento regulatorio, traducción y legalización de documentos y gestión de trámites en México.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const resolvedParams = await params;
+  const lang = resolvedParams.lang as Locale;
+  const dict = getDictionary(lang);
 
-export default function ServiciosPage() {
+  return {
+    title: dict.servicesPage.meta_title,
+    description: dict.servicesPage.meta_desc,
+  };
+}
+
+export default async function ServiciosPage({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const resolvedParams = await params;
+  const lang = resolvedParams.lang as Locale;
+  const dict = getDictionary(lang);
+
   return (
     <>
       <PageHeader
-        eyebrow="Catálogo 2026"
-        title="Servicios"
-        lead="Tres áreas de práctica, tarifas públicas y tiempos de entrega estimados. Contrata en línea o pide una propuesta a la medida."
+        eyebrow={dict.servicesPage.catalog}
+        title={dict.servicesPage.title}
+        lead={dict.servicesPage.lead}
         crumbs={[
-          { href: "/", label: "Inicio" },
-          { href: "/servicios", label: "Servicios" },
+          { href: `/${lang}`, label: dict.common.home },
+          { href: `/${lang}/servicios`, label: dict.nav.services },
         ]}
       />
 
       <section className="mx-auto max-w-8xl px-5 py-16 md:px-10 md:py-24 lg:px-14">
         <div className="space-y-px">
-          {categories.map((cat, i) => {
-            const items = servicesByCategory(cat.slug);
+          {catalogs[lang].categories.map((cat, i) => {
+            const items = servicesByCategory(cat.slug, lang);
             const from = Math.min(...items.map((s) => s.price));
             return (
               <Reveal key={cat.slug} delay={i * 90}>
                 <Link
-                  href={`/servicios/${cat.slug}`}
+                  href={`/${lang}/servicios/${cat.slug}`}
                   className="group grid gap-8 border-t border-forest/14 py-10 transition-colors last:border-b hover:bg-cream-deep/40 md:grid-cols-12 md:items-center md:gap-10 md:py-12"
                 >
                   <div className="md:col-span-4 lg:col-span-3">
@@ -56,7 +74,7 @@ export default function ServiciosPage() {
                       </span>
                       <span className="h-px w-8 bg-brass/50" />
                       <span className="num text-[0.66rem] uppercase tracking-[0.16em] text-forest/50">
-                        {items.length} servicios
+                        {items.length} {dict.servicesPage.services_count}
                       </span>
                     </div>
                     <h2 className="mt-4 text-[clamp(1.6rem,3vw,2.5rem)] leading-[1.06] text-ink transition-transform duration-500 group-hover:translate-x-1.5">
@@ -70,7 +88,7 @@ export default function ServiciosPage() {
                   <div className="flex items-center justify-between md:col-span-2 md:flex-col md:items-end md:justify-center md:gap-6 lg:col-span-3">
                     <div className="text-right">
                       <p className="text-[0.68rem] uppercase tracking-[0.12em] text-forest/50">
-                        Desde
+                        {dict.servicesPage.from}
                       </p>
                       <p className="num mt-1 text-[1.3rem] text-ink">
                         {formatMXN(from)}
@@ -90,22 +108,20 @@ export default function ServiciosPage() {
       <section className="border-t border-forest/12 bg-forest text-cream">
         <div className="mx-auto flex max-w-8xl flex-col justify-between gap-8 px-5 py-16 md:flex-row md:items-center md:px-10 md:py-20 lg:px-14">
           <div>
-            <p className="eyebrow text-brass-light">A la medida</p>
+            <p className="eyebrow text-brass-light">{dict.servicesPage.custom_eyebrow}</p>
             <h2 className="mt-4 max-w-xl text-[clamp(1.8rem,3.4vw,2.9rem)] leading-[1.05] text-cream">
-              ¿Tu caso no cabe en una casilla del catálogo?
+              {dict.servicesPage.custom_title}
             </h2>
             <p className="mt-4 max-w-lg text-[0.95rem] leading-relaxed text-cream/65">
-              Preparamos una propuesta específica con alcance, tiempos y costo
-              cerrado. Si ya tienes una cotización nuestra, puedes pagarla en
-              línea.
+              {dict.servicesPage.custom_desc}
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row md:shrink-0">
             <Button asChild variant="brass">
-              <Link href="/contacto">Pedir propuesta</Link>
+              <Link href={`/${lang}/contacto`}>{dict.servicesPage.request_proposal}</Link>
             </Button>
             <Button asChild variant="outlineCream">
-              <Link href="/cotizacion">Ya tengo cotización</Link>
+              <Link href={`/${lang}/cotizacion`}>{dict.servicesPage.have_quote}</Link>
             </Button>
           </div>
         </div>

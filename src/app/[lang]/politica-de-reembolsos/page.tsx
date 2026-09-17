@@ -52,7 +52,7 @@ export default function ReembolsosPage() {
           id: "procedimiento",
           heading: "Cómo solicitarlo",
           paragraphs: [
-            "Envía tu solicitud a facturacion@apoyolegalmx.com indicando el folio del pedido y el motivo. Confirmamos la recepción en un día hábil y resolvemos en un máximo de cinco días hábiles.",
+            "Envía tu solicitud a info@apoyolegalmx.com indicando el folio del pedido y el motivo. Confirmamos la recepción en un día hábil y resolvemos en un máximo de cinco días hábiles.",
             "Los reembolsos se aplican al mismo medio de pago utilizado en la compra. El tiempo de acreditación depende de tu banco emisor.",
           ],
         },

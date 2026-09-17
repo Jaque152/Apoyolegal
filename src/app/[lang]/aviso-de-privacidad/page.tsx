@@ -13,7 +13,7 @@ export default function PrivacidadPage() {
       eyebrow="Documento legal"
       title="Aviso de privacidad"
       updated="Enero 2026"
-      intro="Apoyo Legal MX S.C., con domicilio en Av. Paseo de la Reforma 296, Piso 12, Juárez, Cuauhtémoc, C.P. 06600, Ciudad de México, es responsable del tratamiento de tus datos personales."
+      intro="Apoyo Legal MX S.C., con domicilio en Mariano Escobedo No.375, Dep.1403, Piso 14, Chapultepec I Secc., C.P. 11580, Al. Miguel Hidalgo, Ciudad de México, es responsable del tratamiento de tus datos personales."
       sections={[
         {
           id: "datos",
@@ -48,7 +48,7 @@ export default function PrivacidadPage() {
           id: "arco",
           heading: "Derechos ARCO",
           paragraphs: [
-            "Puedes acceder, rectificar, cancelar u oponerte al tratamiento de tus datos personales, así como revocar tu consentimiento, enviando una solicitud a privacidad@apoyolegalmx.com.",
+            "Puedes acceder, rectificar, cancelar u oponerte al tratamiento de tus datos personales, así como revocar tu consentimiento, enviando una solicitud a info@apoyolegalmx.com.",
             "Daremos respuesta a tu solicitud en un plazo máximo de veinte días hábiles contados a partir de su recepción.",
           ],
         },

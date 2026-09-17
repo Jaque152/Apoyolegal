@@ -8,49 +8,60 @@ import { Reveal } from "@/components/site/reveal";
 import { ServiceCard } from "@/components/shop/service-card";
 import { Button } from "@/components/ui/button";
 import {
+  catalogs,
   categories,
   getCategory,
   servicesByCategory,
   type CategorySlug,
 } from "@/lib/catalog";
+import { getDictionary, type Locale } from "@/lib/dictionaries";
 
 export function generateStaticParams() {
-  return categories.map((c) => ({ slug: c.slug }));
+  return categories.flatMap((c) => [
+    { lang: "es", slug: c.slug },
+    { lang: "en", slug: c.slug },
+  ]);
 }
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ lang: string; slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
-  const cat = getCategory(slug);
-  if (!cat) return { title: "Servicio no encontrado" };
+  const resolvedParams = await params;
+  const lang = resolvedParams.lang as Locale;
+  const dict = getDictionary(lang);
+
+  const cat = getCategory(resolvedParams.slug, lang);
+  if (!cat) return { title: dict.categoryPage.not_found };
   return { title: cat.name, description: cat.description };
 }
 
 export default async function CategoriaPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ lang: string; slug: string }>;
 }) {
-  const { slug } = await params;
-  const cat = getCategory(slug);
+  const resolvedParams = await params;
+  const lang = resolvedParams.lang as Locale;
+  const dict = getDictionary(lang);
+
+  const cat = getCategory(resolvedParams.slug);
   if (!cat) notFound();
 
-  const items = servicesByCategory(cat.slug as CategorySlug);
-  const others = categories.filter((c) => c.slug !== cat.slug);
+  const items = servicesByCategory(cat.slug as CategorySlug, lang);
+  const others = catalogs[lang].categories.filter((c) => c.slug !== cat.slug);
 
   return (
     <>
       <PageHeader
-        eyebrow={`Área ${cat.index} · ${items.length} servicios`}
+        eyebrow={`${dict.categoryPage.area} ${cat.index} · ${items.length} ${dict.categoryPage.services_count}`}
         title={cat.name}
         lead={cat.description}
         crumbs={[
-          { href: "/", label: "Inicio" },
-          { href: "/servicios", label: "Servicios" },
-          { href: `/servicios/${cat.slug}`, label: cat.shortName },
+          { href: `/${lang}`, label: dict.common.home },
+          { href: `/${lang}/servicios`, label: dict.nav.services },
+          { href: `/${lang}/servicios/${cat.slug}`, label: cat.shortName },
         ]}
       />
 
@@ -74,9 +85,9 @@ export default async function CategoriaPage({
 
       <section className="mx-auto max-w-8xl px-5 py-14 md:px-10 md:py-20 lg:px-14">
         <div className="mb-10 flex flex-wrap items-end justify-between gap-4 border-b border-forest/14 pb-5">
-          <h2 className="text-[1.6rem] text-ink">Servicios disponibles</h2>
+          <h2 className="text-[1.6rem] text-ink">{dict.categoryPage.available_services}</h2>
           <p className="num text-[0.7rem] uppercase tracking-[0.14em] text-forest/50">
-            Precios en MXN + IVA
+            {dict.categoryPage.prices_in}
           </p>
         </div>
 
@@ -93,16 +104,16 @@ export default async function CategoriaPage({
         <div className="mx-auto max-w-8xl px-5 py-14 md:px-10 md:py-16 lg:px-14">
           <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
             <Button asChild variant="ghost" size="sm">
-              <Link href="/servicios" className="gap-2">
+              <Link href={`/${lang}/servicios`} className="gap-2">
                 <ArrowLeft className="h-3.5 w-3.5" strokeWidth={1.5} />
-                Todas las áreas
+                {dict.categoryPage.all_areas}
               </Link>
             </Button>
             <div className="flex flex-col gap-4 sm:flex-row sm:gap-10">
               {others.map((o) => (
                 <Link
                   key={o.slug}
-                  href={`/servicios/${o.slug}`}
+                  href={`/${lang}/servicios/${o.slug}`}
                   className="group flex items-baseline gap-3"
                 >
                   <span className="num text-[0.65rem] text-brass">

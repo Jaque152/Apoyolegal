@@ -1,7 +1,7 @@
 "use client";
 
+import { use, useState } from "react";
 import Link from "next/link";
-import { useState } from "react";
 import { Check, Clock, Loader2, Mail, MapPin, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/site/page-header";
@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { categories } from "@/lib/catalog";
 import { cn } from "@/lib/utils";
 import { sendContactEmail } from "@/actions/email";
+import { getDictionary, type Locale } from "@/lib/dictionaries";
 
 const initial = {
   nombre: "",
@@ -22,7 +23,11 @@ const initial = {
   mensaje: "",
 };
 
-export default function ContactoPage() {
+export default function ContactoPage(props: { params: Promise<{ lang: string }> }) {
+  const params = use(props.params);
+  const lang = params.lang as Locale;
+  const dict = getDictionary(lang);
+
   const [form, setForm] = useState(initial);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<"idle" | "loading" | "done">("idle");
@@ -39,14 +44,14 @@ export default function ContactoPage() {
 
   function validate() {
     const e: Record<string, string> = {};
-    if (form.nombre.trim().length < 3) e.nombre = "Escribe tu nombre completo";
+    if (form.nombre.trim().length < 3) e.nombre = dict.contactPage.errors.name;
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.email))
-      e.email = "Correo electrónico no válido";
+      e.email = dict.contactPage.errors.email;
     if (form.telefono && form.telefono.replace(/\D/g, "").length < 10)
-      e.telefono = "Incluye 10 dígitos";
-    if (!form.asunto) e.asunto = "Selecciona un tema";
+      e.telefono = dict.contactPage.errors.phone;
+    if (!form.asunto) e.asunto = dict.contactPage.errors.topic;
     if (form.mensaje.trim().length < 15)
-      e.mensaje = "Cuéntanos un poco más (mínimo 15 caracteres)";
+      e.mensaje = dict.contactPage.errors.message;
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -56,18 +61,18 @@ export default function ContactoPage() {
     if (!validate()) return;
     setStatus("loading");
     
-    // Llamada real al Server Action de Resend
-    const result = await sendContactEmail(form);
+    // Se inyecta el idioma activo al Server Action
+    const result = await sendContactEmail({ ...form, lang });
     
     if (result.success) {
       setStatus("done");
-      toast("Mensaje enviado", {
-        description: "Te respondemos en menos de 24 horas hábiles.",
+      toast(dict.contactPage.toast_sent, {
+        description: dict.contactPage.toast_sent_desc,
       });
     } else {
       setStatus("idle");
-      toast.error("Error al enviar", {
-        description: "Hubo un problema de conexión. Intenta de nuevo.",
+      toast.error(dict.contactPage.toast_error, {
+        description: dict.contactPage.toast_error_desc,
       });
     }
   }
@@ -75,12 +80,12 @@ export default function ContactoPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Primera consulta sin costo"
-        title="Contacto"
-        lead="Cuéntanos qué necesitas resolver. Te respondemos con un diagnóstico inicial y, si aplica, una propuesta con alcance y costo cerrado."
+        eyebrow={dict.contactPage.eyebrow}
+        title={dict.contactPage.title}
+        lead={dict.contactPage.lead}
         crumbs={[
-          { href: "/", label: "Inicio" },
-          { href: "/contacto", label: "Contacto" },
+          { href: `/${lang}`, label: dict.common.home },
+          { href: `/${lang}/contacto`, label: dict.contactPage.title },
         ]}
       />
 
@@ -94,18 +99,14 @@ export default function ContactoPage() {
                   <Check className="h-6 w-6" strokeWidth={1.5} />
                 </span>
                 <h2 className="mt-8 text-[clamp(1.7rem,3vw,2.4rem)] leading-tight text-ink">
-                  Mensaje recibido, {form.nombre.split(" ")[0]}
+                  {dict.contactPage.msg_received.replace("{name}", form.nombre.split(" ")[0])}
                 </h2>
                 <p className="mt-5 text-[1rem] leading-relaxed text-forest-soft">
-                  Un abogado de nuestro equipo revisará tu caso y te escribirá a{" "}
-                  <span className="text-ink">{form.email}</span> dentro de las
-                  próximas 24 horas hábiles. Si tu asunto es urgente, márcanos
-                  directamente.
+                  {dict.contactPage.msg_desc_1}
+                  <span className="text-ink">{form.email}</span>
+                  {dict.contactPage.msg_desc_2}
                 </p>
                 <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                  <Button asChild>
-                    <a href="tel:+525525838500">Llamar ahora</a>
-                  </Button>
                   <Button
                     variant="outline"
                     onClick={() => {
@@ -113,20 +114,20 @@ export default function ContactoPage() {
                       setStatus("idle");
                     }}
                   >
-                    Enviar otro mensaje
+                    {dict.contactPage.send_another}
                   </Button>
                 </div>
               </div>
             ) : (
               <form onSubmit={onSubmit} noValidate>
                 <h2 className="text-[clamp(1.7rem,3.2vw,2.5rem)] leading-[1.05] text-ink">
-                  Agenda tu consulta
+                  {dict.contactPage.form_title}
                 </h2>
 
                 <div className="mt-10 grid gap-x-8 gap-y-7 sm:grid-cols-2">
                   <FormField
                     id="nombre"
-                    label="Nombre completo"
+                    label={dict.contactPage.name}
                     value={form.nombre}
                     onChange={(v) => set("nombre", v)}
                     error={errors.nombre}
@@ -134,7 +135,7 @@ export default function ContactoPage() {
                   />
                   <FormField
                     id="email"
-                    label="Correo electrónico"
+                    label={dict.contactPage.email}
                     type="email"
                     value={form.email}
                     onChange={(v) => set("email", v)}
@@ -143,7 +144,7 @@ export default function ContactoPage() {
                   />
                   <FormField
                     id="telefono"
-                    label="Teléfono (opcional)"
+                    label={dict.contactPage.phone}
                     type="tel"
                     value={form.telefono}
                     onChange={(v) => set("telefono", v)}
@@ -156,7 +157,7 @@ export default function ContactoPage() {
                       htmlFor="asunto"
                       className="text-[0.7rem] uppercase tracking-[0.12em] text-forest/55"
                     >
-                      Tema
+                      {dict.contactPage.topic}
                     </Label>
                     <select
                       id="asunto"
@@ -168,16 +169,16 @@ export default function ContactoPage() {
                         errors.asunto && "border-clay",
                       )}
                     >
-                      <option value="">Selecciona una opción</option>
+                      <option value="">{dict.contactPage.select_topic}</option>
                       {categories.map((c) => (
                         <option key={c.slug} value={c.shortName}>
                           {c.shortName}
                         </option>
                       ))}
                       <option value="Propuesta a la medida">
-                        Propuesta a la medida
+                        {dict.contactPage.custom_quote}
                       </option>
-                      <option value="Otro">Otro</option>
+                      <option value="Otro">{dict.contactPage.other}</option>
                     </select>
                     {errors.asunto && (
                       <p className="mt-1.5 text-[0.75rem] text-clay">
@@ -191,13 +192,13 @@ export default function ContactoPage() {
                       htmlFor="mensaje"
                       className="text-[0.7rem] uppercase tracking-[0.12em] text-forest/55"
                     >
-                      Cuéntanos tu caso
+                      {dict.contactPage.case_details}
                     </Label>
                     <Textarea
                       id="mensaje"
                       value={form.mensaje}
                       onChange={(e) => set("mensaje", e.target.value)}
-                      placeholder="Describe el trámite, la autoridad o institución involucrada y los plazos que tienes."
+                      placeholder={dict.contactPage.case_placeholder}
                       className={cn("mt-2", errors.mensaje && "border-clay")}
                     />
                     {errors.mensaje && (
@@ -212,19 +213,19 @@ export default function ContactoPage() {
                   <Button type="submit" disabled={status === "loading"}>
                     {status === "loading" ? (
                       <>
-                        <Loader2 className="h-4 w-4 animate-spin" /> Enviando
+                        <Loader2 className="h-4 w-4 animate-spin" /> {dict.contactPage.sending}
                       </>
                     ) : (
-                      "Enviar mensaje"
+                      dict.contactPage.send_msg
                     )}
                   </Button>
                   <p className="max-w-xs text-[0.75rem] leading-relaxed text-forest/55">
-                    Al enviar aceptas nuestro{" "}
+                    {dict.contactPage.privacy_1}
                     <Link
-                      href="/aviso-de-privacidad"
+                      href={`/${lang}/aviso-de-privacidad`}
                       className="link-sweep text-forest"
                     >
-                      aviso de privacidad
+                      {dict.contactPage.privacy_link}
                     </Link>
                     .
                   </p>
@@ -236,26 +237,26 @@ export default function ContactoPage() {
           {/* Datos */}
           <aside className="lg:col-span-5">
             <Reveal className="border border-forest/15 bg-cream-deep/40 p-7 md:p-9">
-              <p className="eyebrow text-brass">Estudio</p>
+              <p className="eyebrow text-brass">{dict.contactPage.studio}</p>
               <h2 className="mt-4 text-[1.8rem] leading-tight text-ink">
-                Deseamos colaborar contigo
+                {dict.contactPage.collab}
               </h2>
 
               <ul className="mt-8 space-y-7">
                 <ContactRow
                   icon={<Mail className="h-4 w-4" strokeWidth={1.4} />}
-                  label="Correo"
+                  label={dict.contactPage.mail}
                 >
                   <a
-                    href="mailto:hola@apoyolegalmx.com"
+                    href="mailto:info@apoyolegalmx.com"
                     className="link-sweep text-ink"
                   >
-                    hola@apoyolegalmx.com
+                    info@apoyolegalmx.com
                   </a>
                 </ContactRow>
                 <ContactRow
                   icon={<Phone className="h-4 w-4" strokeWidth={1.4} />}
-                  label="Teléfono"
+                  label={dict.contactPage.tel}
                 >
                   <a
                     href="tel:+525525838500"
@@ -266,39 +267,26 @@ export default function ContactoPage() {
                 </ContactRow>
                 <ContactRow
                   icon={<MapPin className="h-4 w-4" strokeWidth={1.4} />}
-                  label="Oficina"
+                  label={dict.contactPage.office}
                 >
                   <p className="leading-relaxed text-ink">
-                    Av. Paseo de la Reforma 296, Piso 12
+                    {dict.contactPage.office_address_1}
                     <br />
-                    Juárez, Cuauhtémoc, C.P. 06600
+                    {dict.contactPage.office_address_2}
                     <br />
-                    Ciudad de México
-                  </p>
-                </ContactRow>
-                <ContactRow
-                  icon={<Clock className="h-4 w-4" strokeWidth={1.4} />}
-                  label="Horario"
-                >
-                  <p className="leading-relaxed text-ink">
-                    Lunes a viernes, 9:00 – 18:00 h
-                    <br />
-                    <span className="text-forest-soft">
-                      Sábados con cita previa
-                    </span>
+                    {dict.contactPage.office_address_3}
                   </p>
                 </ContactRow>
               </ul>
             </Reveal>
 
             <Reveal delay={120} className="mt-6 bg-forest p-7 text-cream md:p-9">
-              <p className="eyebrow text-brass-light">¿Ya tienes cotización?</p>
+              <p className="eyebrow text-brass-light">{dict.contactPage.has_quote}</p>
               <p className="mt-4 text-[0.95rem] leading-relaxed text-cream/70">
-                Si nuestro equipo ya te envió una propuesta, puedes liquidarla
-                en línea con tarjeta o transferencia.
+                {dict.contactPage.quote_desc}
               </p>
               <Button asChild variant="outlineCream" size="sm" className="mt-6">
-                <Link href="/cotizacion">Pagar cotización</Link>
+                <Link href={`/${lang}/cotizacion`}>{dict.contactPage.pay_quote}</Link>
               </Button>
             </Reveal>
           </aside>
@@ -308,7 +296,7 @@ export default function ContactoPage() {
       {/* Teléfono grande */}
       <section className="border-t border-forest/12 bg-cream-deep/50">
         <div className="mx-auto max-w-8xl px-5 py-16 text-center md:py-20 lg:px-14">
-          <p className="eyebrow text-brass">Consulta inicial sin costo</p>
+          <p className="eyebrow text-brass">{dict.contactPage.big_phone_eyebrow}</p>
           <a
             href="tel:+525525838500"
             className="num mt-6 block text-[clamp(2.2rem,7vw,5rem)] leading-none text-ink transition-colors hover:text-brass"
@@ -363,15 +351,7 @@ function FormField({
   );
 }
 
-function ContactRow({
-  icon,
-  label,
-  children,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  children: React.ReactNode;
-}) {
+function ContactRow({ icon, label, children }: { icon: React.ReactNode; label: string; children: React.ReactNode }) {
   return (
     <li className="flex gap-4 border-t border-forest/12 pt-5">
       <span className="mt-1 text-brass">{icon}</span>

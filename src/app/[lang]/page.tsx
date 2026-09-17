@@ -5,34 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/site/reveal";
 import { categories, services } from "@/lib/catalog";
 import { ServiceCard } from "@/components/shop/service-card";
-
-const process = [
-  {
-    n: "01",
-    title: "Diagnóstico",
-    body: "Escuchamos el caso, revisamos lo que ya tienes y definimos qué documentos y pasos hacen falta de verdad.",
-  },
-  {
-    n: "02",
-    title: "Estructura documental",
-    body: "Ordenamos, cotejamos y corregimos el expediente hasta que cumple el estándar de quien va a revisarlo.",
-  },
-  {
-    n: "03",
-    title: "Presentación",
-    body: "Somos tu enlace con bancos, autoridades, notarías y plataformas. Presentamos y recogemos acuses.",
-  },
-  {
-    n: "04",
-    title: "Seguimiento",
-    body: "Monitoreamos cada movimiento y te reportamos avances con fechas, responsables y siguientes pasos.",
-  },
-  {
-    n: "05",
-    title: "Entrega y resguardo",
-    body: "Recibes documentos finales, constancias y una carpeta ordenada que puedes volver a usar mañana.",
-  },
-];
+import { getDictionary, type Locale } from "@/lib/dictionaries";
 
 const marquee = [
   "KYC / AML",
@@ -45,7 +18,15 @@ const marquee = [
   "SEGOB · SRE · SAT",
 ];
 
-export default function Home() {
+export default async function Home({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const resolvedParams = await params;
+  const lang = resolvedParams.lang as Locale;
+  const dict = getDictionary(lang);
+
   const featured = services.filter((s) =>
     [
       "revision-documentos-kyc-aml",
@@ -62,23 +43,23 @@ export default function Home() {
           <div className="grid items-end gap-10 lg:grid-cols-12">
             <div className="lg:col-span-7">
               <p className="eyebrow reveal text-brass">
-                Firma de gestión legal · Ciudad de México
+                {dict.home.hero.eyebrow}
               </p>
 
               <h1 className="mt-7 font-display text-ink display-xl">
                 <span className="reveal-mask">
-                  <span style={{ animationDelay: "60ms" }}>Tu empresa,</span>
+                  <span style={{ animationDelay: "60ms" }}>{dict.home.hero.title_1}</span>
                 </span>
                 <span className="reveal-mask">
                   <span
                     className="italic text-forest-soft"
                     style={{ animationDelay: "150ms" }}
                   >
-                    en regla
+                    {" "}{dict.home.hero.title_2}
                   </span>
                 </span>
                 <span className="reveal-mask">
-                  <span style={{ animationDelay: "240ms" }}>y sin fricción</span>
+                  <span style={{ animationDelay: "240ms" }}>{" "}{dict.home.hero.title_3}</span>
                 </span>
               </h1>
 
@@ -87,20 +68,18 @@ export default function Home() {
                 style={{ animationDelay: "420ms" }}
               >
                 <p className="text-[1.05rem] leading-relaxed text-forest-soft">
-                  Convertimos requisitos regulatorios y papeleo crítico en un
-                  proceso claro, con responsables y fechas. Para que operes con
-                  certeza en México y fuera de él.
+                  {dict.home.hero.description}
                 </p>
                 <div className="mt-9 flex flex-wrap items-center gap-4">
                   <Button asChild size="lg">
-                    <Link href="/servicios">
-                      Ver servicios
+                    <Link href={`/${lang}/servicios`}>
+                      {dict.home.hero.view_services}
                       <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
                     </Link>
                   </Button>
                   <Button asChild variant="ghost" size="lg">
-                    <Link href="/contacto" className="link-sweep">
-                      Solicitar cotización
+                    <Link href={`/${lang}/contacto`} className="link-sweep">
+                      {dict.home.hero.request_quote}
                     </Link>
                   </Button>
                 </div>
@@ -121,9 +100,9 @@ export default function Home() {
                   className="duotone object-cover"
                 />
                 <figcaption className="absolute bottom-5 left-5 z-10 max-w-[16rem]">
-                  <p className="eyebrow text-brass-light">Est. 2019</p>
+                  <p className="eyebrow text-brass-light">{dict.home.hero.est}</p>
                   <p className="mt-2 font-display text-[1.1rem] leading-snug text-cream">
-                    Reforma 296, Piso 12 — Ciudad de México
+                    {dict.home.hero.location}
                   </p>
                 </figcaption>
               </figure>
@@ -156,30 +135,27 @@ export default function Home() {
         <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
           <Reveal className="lg:col-span-5">
             <h2 className="text-[clamp(2rem,3.8vw,3.4rem)] leading-[1.02] text-ink">
-              Compliance y documentación para empresas y proyectos digitales
+              {dict.home.manifesto.title}
             </h2>
             <Button asChild variant="outline" className="mt-9">
-              <Link href="/contacto">Hablemos hoy</Link>
+              <Link href={`/${lang}/contacto`}>{dict.home.manifesto.cta}</Link>
             </Button>
           </Reveal>
 
           <Reveal delay={120} className="space-y-6 lg:col-span-6 lg:col-start-7">
             <p className="text-[1.02rem] leading-relaxed text-forest-soft">
-              Trabajamos con <em className="text-ink not-italic">fundadores</em>,{" "}
-              <em className="text-ink not-italic">fintechs</em>, plataformas de
-              pago y despachos que necesitan cumplir con obligaciones
-              regulatorias sin frenar su operación.
+              {dict.home.manifesto.p1_1}
+              <em className="text-ink not-italic">{dict.home.manifesto.p1_fundadores}</em>
+              {dict.home.manifesto.p1_2}
+              <em className="text-ink not-italic">{dict.home.manifesto.p1_fintechs}</em>
+              {dict.home.manifesto.p1_3}
             </p>
             <p className="text-[1.02rem] leading-relaxed text-forest-soft">
-              La mayoría de los rechazos no ocurren por falta de sustancia:
-              ocurren por un documento vencido, un dato inconsistente o un
-              formato equivocado. Nuestro trabajo es que eso no pase.
+              {dict.home.manifesto.p2}
             </p>
             <p className="text-[1.02rem] leading-relaxed text-forest-soft">
-              Combinamos criterio jurídico, gestión documental estructurada y
-              seguimiento activo hasta la entrega final.
+              {dict.home.manifesto.p3}
             </p>
-
           </Reveal>
         </div>
       </section>
@@ -200,32 +176,17 @@ export default function Home() {
           </Reveal>
 
           <Reveal delay={120} className="lg:col-span-6 lg:col-start-7">
-            <p className="eyebrow text-brass">Quiénes somos</p>
+            <p className="eyebrow text-brass">{dict.home.about.eyebrow}</p>
             <h2 className="mt-5 text-[clamp(1.9rem,3.4vw,3rem)] leading-[1.05] text-ink">
-              Un equipo pequeño, obsesivo con el detalle
+              {dict.home.about.title}
             </h2>
             <div className="mt-7 space-y-5 text-[1rem] leading-relaxed text-forest-soft">
-              <p>
-                Somos abogados y gestores especializados en cumplimiento,
-                documentación regulatoria y trámites ante autoridades mexicanas.
-                Hemos acompañado a compañías locales y extranjeras en procesos
-                de KYC/AML, apertura de cuentas, integraciones de pago,
-                traducciones certificadas y apostillas.
-              </p>
-              <p>
-                No entregamos diagnósticos genéricos: entregamos el documento
-                listo, el acuse sellado y la constancia en la mano. Cada asunto
-                tiene un responsable con nombre y un canal directo.
-              </p>
+              <p>{dict.home.about.p1}</p>
+              <p>{dict.home.about.p2}</p>
             </div>
 
             <ul className="mt-9 grid gap-x-8 gap-y-3 sm:grid-cols-2">
-              {[
-                "Trato directo con el responsable de tu asunto",
-                "Tarifas publicadas, sin sorpresas",
-                "Reportes de avance por escrito",
-                "Resguardo digital de todo tu expediente",
-              ].map((item) => (
+              {dict.home.about.bullets.map((item) => (
                 <li
                   key={item}
                   className="flex gap-3 text-[0.92rem] text-forest-soft"
@@ -237,7 +198,7 @@ export default function Home() {
             </ul>
 
             <Button asChild variant="outline" className="mt-10">
-              <Link href="/servicios">Conoce el catálogo</Link>
+              <Link href={`/${lang}/servicios`}>{dict.home.about.cta}</Link>
             </Button>
           </Reveal>
         </div>
@@ -247,27 +208,26 @@ export default function Home() {
       <section className="mx-auto max-w-8xl px-5 py-20 md:px-10 md:py-28 lg:px-14">
         <Reveal className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
-            <p className="eyebrow text-brass">Método</p>
+            <p className="eyebrow text-brass">{dict.home.method.eyebrow}</p>
             <h2 className="mt-5 max-w-xl text-[clamp(2rem,4vw,3.4rem)] leading-[1.02] text-ink">
-              Cómo trabajamos
+              {dict.home.method.title}
             </h2>
           </div>
           <p className="max-w-sm text-[0.95rem] leading-relaxed text-forest-soft">
-            Cinco etapas, siempre las mismas. Sabes en qué punto está tu asunto
-            en cualquier momento.
+            {dict.home.method.description}
           </p>
         </Reveal>
 
         <ol className="mt-14">
-          {process.map((step, i) => (
+          {dict.home.method.steps.map((step, i) => (
             <Reveal
               as="li"
-              key={step.n}
+              key={i}
               delay={i * 70}
               className="group grid items-start gap-4 border-t border-forest/14 py-8 last:border-b md:grid-cols-12 md:gap-8"
             >
               <span className="num text-[0.72rem] tracking-[0.2em] text-brass md:col-span-1">
-                {step.n}
+                {String(i + 1).padStart(2, "0")}
               </span>
               <h3 className="text-[1.5rem] leading-tight text-ink transition-transform duration-500 group-hover:translate-x-1.5 md:col-span-4 md:text-[1.75rem]">
                 {step.title}
@@ -288,13 +248,13 @@ export default function Home() {
         <div className="mx-auto max-w-8xl px-5 py-20 md:px-10 md:py-28 lg:px-14">
           <Reveal className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
             <div>
-              <p className="eyebrow text-brass-light">Áreas de práctica</p>
+              <p className="eyebrow text-brass-light">{dict.home.areas.eyebrow}</p>
               <h2 className="mt-5 max-w-2xl text-[clamp(2rem,4vw,3.4rem)] leading-[1.02] text-cream">
-                Tres frentes donde tu operación se atora
+                {dict.home.areas.title}
               </h2>
             </div>
             <Button asChild variant="outlineCream">
-              <Link href="/servicios">Ver todas las áreas</Link>
+              <Link href={`/${lang}/servicios`}>{dict.home.areas.view_all}</Link>
             </Button>
           </Reveal>
 
@@ -302,7 +262,7 @@ export default function Home() {
             {categories.map((cat, i) => (
               <Reveal key={cat.slug} delay={i * 90}>
                 <Link
-                  href={`/servicios/${cat.slug}`}
+                  href={`/${lang}/servicios/${cat.slug}`}
                   className="group flex h-full flex-col bg-forest p-7 transition-colors duration-500 hover:bg-ink md:p-9"
                 >
                   <div className="flex items-start justify-between">
@@ -324,7 +284,7 @@ export default function Home() {
                     {cat.description}
                   </p>
                   <span className="mt-8 inline-flex items-center gap-2 text-[0.72rem] uppercase tracking-[0.16em] text-cream/80">
-                    Explorar
+                    {dict.home.areas.explore}
                     <span className="block h-px w-8 bg-brass-light transition-all duration-300 group-hover:w-14" />
                   </span>
                 </Link>
@@ -338,14 +298,13 @@ export default function Home() {
       <section className="mx-auto max-w-8xl px-5 py-20 md:px-10 md:py-28 lg:px-14">
         <Reveal className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
-            <p className="eyebrow text-brass">Contratación directa</p>
+            <p className="eyebrow text-brass">{dict.home.featured.eyebrow}</p>
             <h2 className="mt-5 max-w-xl text-[clamp(2rem,4vw,3.4rem)] leading-[1.02] text-ink">
-              Servicios que puedes contratar hoy
+              {dict.home.featured.title}
             </h2>
           </div>
           <p className="max-w-sm text-[0.95rem] leading-relaxed text-forest-soft">
-            Precios públicos en pesos mexicanos. Agrega al carrito, paga en
-            línea y comenzamos el mismo día hábil.
+            {dict.home.featured.description}
           </p>
         </Reveal>
 
@@ -364,13 +323,13 @@ export default function Home() {
           <div className="grid gap-12 lg:grid-cols-12">
             <Reveal className="lg:col-span-5">
               <h2 className="text-[clamp(2rem,4vw,3.4rem)] leading-[1.02] text-ink">
-                Primera consulta
+                {dict.home.contact.title_1}
                 <br />
-                <span className="italic text-forest-soft">sin costo</span>
+                <span className="italic text-forest-soft">{dict.home.contact.title_2}</span>
               </h2>
               <Button asChild className="mt-8">
-                <Link href="/contacto">
-                  Agenda una llamada
+                <Link href={`/${lang}/contacto`}>
+                  {dict.home.contact.cta}
                   <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
                 </Link>
               </Button>
@@ -380,15 +339,15 @@ export default function Home() {
               delay={120}
               className="grid gap-8 sm:grid-cols-3 lg:col-span-6 lg:col-start-7"
             >
-              <ContactBlock label="Escríbenos">
+              <ContactBlock label={dict.home.contact.write_us}>
                 <a
-                  href="mailto:hola@apoyolegalmx.com"
+                  href="mailto:info@apoyolegalmx.com"
                   className="link-sweep text-[0.95rem] text-ink"
                 >
-                  hola@apoyolegalmx.com
+                  info@apoyolegalmx.com
                 </a>
               </ContactBlock>
-              <ContactBlock label="Llámanos">
+              <ContactBlock label={dict.home.contact.call_us}>
                 <a
                   href="tel:+525525838500"
                   className="num link-sweep text-[0.95rem] text-ink"
@@ -396,11 +355,11 @@ export default function Home() {
                   +52 55 2583 8500
                 </a>
               </ContactBlock>
-              <ContactBlock label="Visítanos">
+              <ContactBlock label={dict.home.contact.visit_us}>
                 <p className="text-[0.92rem] leading-relaxed text-ink">
-                  Reforma 296, Piso 12
+                  {dict.home.contact.address_l1}
                   <br />
-                  Juárez, CDMX 06600
+                  {dict.home.contact.address_l2}
                 </p>
               </ContactBlock>
             </Reveal>
