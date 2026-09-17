@@ -181,9 +181,6 @@ export default function CheckoutPage(props: { params: Promise<{ lang: string }> 
               <Button asChild>
                 <Link href={`/${lang}/servicios`}>{dict.checkoutPage.back_catalog}</Link>
               </Button>
-              <Button asChild variant="outline">
-                <Link href={`/${lang}/contacto`}>{dict.checkoutPage.contact_lawyer}</Link>
-              </Button>
             </div>
           </div>
         </section>
