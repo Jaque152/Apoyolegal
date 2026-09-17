@@ -13,7 +13,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/_next') || 
     pathname.startsWith('/api')
   ) {
-    return;
+    return NextResponse.next();
   }
 
   // Comprobamos si la URL ya tiene el idioma (ej. /es/contacto)
@@ -21,13 +21,27 @@ export function middleware(request: NextRequest) {
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
   );
 
-  if (pathnameHasLocale) return;
+  if (pathnameHasLocale) return NextResponse.next();
+  
+  // Tomamos el dominio original enviado por Nginx
+  const host =
+    request.headers.get("x-forwarded-host") ||
+    request.headers.get("host");
 
-  // Si no tiene idioma, redirigimos al default
-  request.nextUrl.pathname = `/${defaultLocale}${pathname}`;
-  return NextResponse.redirect(request.nextUrl);
+  const protocol =
+    request.headers.get("x-forwarded-proto") ||
+    "https";
+
+  const redirectUrl = new URL(
+    `/${defaultLocale}${pathname}`,
+    `${protocol}://${host}`
+  );
+
+  return NextResponse.redirect(redirectUrl);
+
 }
 
 export const config = {
   matcher: ['/((?!_next|api|favicon.ico).*)'],
 };
+
