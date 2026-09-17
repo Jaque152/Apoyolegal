@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { Logo } from "@/components/site/logo";
 import { categories } from "@/lib/catalog";
-import type { Locale } from "@/lib/dictionaries";
+import { getDictionary, type Locale } from "@/lib/dictionaries";
 
 function VisaBadge() {
   return (
@@ -25,7 +25,8 @@ function MastercardBadge() {
   );
 }
 
-export function Footer({ lang, dict }: { lang: Locale; dict: any }) {
+type Dictionary = ReturnType<typeof getDictionary>;
+export function Footer({ lang, dict }: { lang: Locale; dict: Dictionary }) {
   const legal = [
     { href: `/${lang}/terminos-y-condiciones`, label: dict.footer.terms },
     { href: `/${lang}/aviso-de-privacidad`, label: dict.footer.privacy },

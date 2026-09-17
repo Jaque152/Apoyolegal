@@ -7,9 +7,11 @@ import { Menu, ShoppingBag, X } from "lucide-react";
 import { Logo } from "@/components/site/logo";
 import { useCart } from "@/components/cart/cart-context";
 import { cn } from "@/lib/utils";
-import type { Locale } from "@/lib/dictionaries"; // Importa tu tipo Locale
+import { getDictionary, type Locale } from "@/lib/dictionaries";
 
-export function Header({ lang, dict }: { lang: Locale; dict: any }) {
+type Dictionary = ReturnType<typeof getDictionary>;
+
+export function Header({ lang, dict }: { lang: Locale; dict: Dictionary }) {
   const pathname = usePathname();
   const { count, openCart, hydrated } = useCart();
   const [scrolled, setScrolled] = useState(false);
